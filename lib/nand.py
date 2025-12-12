@@ -1,4 +1,5 @@
-# nReader v1.0
+# nReader v1.1
+# Copyright (C) 2009 Ben Wilson
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -6,10 +7,10 @@ import os
 import struct
 from Crypto.Cipher import AES
 
-def beU16(b):
+def beU16(b: bytes) -> int:
     return struct.unpack(">H", b)[0]
 
-def beU32(b):
+def beU32(b: bytes) -> int:
     return struct.unpack(">I", b)[0]
 
 class FstEntry:
@@ -24,7 +25,7 @@ class FstEntry:
         self.gid = 0
         self.x3 = 0
 
-class WiiNAND:
+class WiiNand:
     NOECC = 0
     ECC = 1
     OLDBOOTMII = 2
@@ -36,7 +37,7 @@ class WiiNAND:
         self.type = self._guessType()
         self.key = None
         self._loadKey()
-        self.iv = bytes([0]*16)
+        self.iv = bytes([0] * 16)
         self.nandFile = open(nandPath, "rb")
 
         self.locSuper = self._findSuperblock()
@@ -47,13 +48,16 @@ class WiiNAND:
     def close(self):
         try:
             self.nandFile.close()
-        except:
+        except Exception:
             pass
 
     def _guessType(self):
-        if self.size == 536870912: return self.NOECC
-        if self.size == 553648128: return self.ECC
-        if self.size == 553649152: return self.OLDBOOTMII
+        if self.size == 536870912:
+            return self.NOECC
+        if self.size == 553648128:
+            return self.ECC
+        if self.size == 553649152:
+            return self.OLDBOOTMII
         raise RuntimeError(f"NAND size unknown: {self.size}")
 
     def _loadKey(self):
@@ -79,8 +83,7 @@ class WiiNAND:
             start, end, step = 0x20BE0000, 0x21000000, 0x42000
 
         self.nandFile.seek(start + 4)
-        last = 0
-        loc = start
+        last, loc = 0, start
         while loc < end:
             self.nandFile.seek(loc)
             raw = self.nandFile.read(4)
@@ -94,7 +97,7 @@ class WiiNAND:
             loc += step
         raise RuntimeError("No superblock found")
 
-    def _getCluster(self, clusterEntry):
+    def _getCluster(self, clusterEntry: int) -> bytes:
         clusterLen, pageLen = (0x4000, 0x800) if self.type == self.NOECC else (0x4200, 0x840)
         self.nandFile.seek(clusterEntry * clusterLen)
         cluster = bytearray(0x4000)
@@ -102,11 +105,11 @@ class WiiNAND:
             page = self.nandFile.read(pageLen)
             if len(page) < pageLen:
                 raise RuntimeError("Unexpected EOF while reading cluster page")
-            cluster[i*0x800:(i+1)*0x800] = page[:0x800]
+            cluster[i * 0x800:(i + 1) * 0x800] = page[:0x800]
         cipher = AES.new(self.key, AES.MODE_CBC, iv=self.iv)
         return cipher.decrypt(bytes(cluster))
 
-    def _getFat(self, fatEntry):
+    def _getFat(self, fatEntry: int) -> int:
         fatEntry += 6
         nFat = 0 if self.type == self.NOECC else 0x20
         loc = self.locFat + (fatEntry // 0x400 * nFat + fatEntry) * 2
@@ -116,7 +119,7 @@ class WiiNAND:
             raise RuntimeError("Unexpected EOF reading FAT")
         return beU16(raw)
 
-    def _getFst(self, entry) -> FstEntry:
+    def _getFst(self, entry: int) -> FstEntry:
         fst = FstEntry()
         nFst = 0 if self.type == self.NOECC else 2
         locEntry = (entry // 0x40 * nFst + entry) * 0x20
@@ -135,7 +138,7 @@ class WiiNAND:
         fst.x3 = beU32(data[28:32])
         return fst
 
-    def extractFst(self, entry, parent, outDir, single):
+    def extractFst(self, entry: int, parent: str, outDir: str, single: bool):
         fst = self._getFst(entry)
 
         if fst.sib != 0xFFFF and not single:
@@ -195,9 +198,8 @@ class WiiNAND:
         with open(filePath, "wb") as fw:
             fw.write(data[:fst.size])
 
-def extractNandData(nandPath: str, keysPath: str):
-    outDir = "temp"
-    nand = WiiNAND(nandPath, keysPath)
+def extractNandData(nandPath: str, keysPath: str, outDir="temp"):
+    nand = WiiNand(nandPath, keysPath)
     try:
         nand.extractFst(0, "", outDir, True)
     finally:

@@ -1,4 +1,4 @@
-# nReader v1.0
+# nReader v1.1
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -18,19 +18,16 @@ NAMES = {
     "0000": "Generic ID",
 }
 
-def readUidSys(uidSysPath):
+def readUidSys(uidSysPath: str) -> dict:
     uidEntries = {}
-    with open(uidSysPath, "rb") as uid:
+    with open(uidSysPath, "rb") as uidFile:
         while True:
-            block = uid.read(12)
+            block = uidFile.read(12)
             if not block:
                 break
-            id = f"{"".join(f"{byte:02x}" for byte in block[0:4])}-{"".join(f"{byte:02x}" for byte in block[4:8])}"
-            gid = "".join((chr(byte) if 32 <= byte <= 126 else ".") for byte in block[4:8])
-            type = TYPES[id[0:8]]
-            try:
-                name = NAMES[gid]
-            except KeyError:
-                name = ""
-            uidEntries[id] = {"gid": gid, "type": type, "name": name}
+            uidHex = f'{"".join(f"{b:02x}" for b in block[0:4])}-{"".join(f"{b:02x}" for b in block[4:8])}'
+            gid = "".join((chr(b) if 32 <= b <= 126 else ".") for b in block[4:8])
+            typeName = TYPES.get(uidHex[:8], "Unknown")
+            name = NAMES.get(gid, "")
+            uidEntries[uidHex] = {"gid": gid, "type": typeName, "name": name}
     return uidEntries
