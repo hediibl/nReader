@@ -1,4 +1,4 @@
-# nReader v1.0
+# nReader v1.1
 
 Author: hediibl
 License: GNU General Public License v3.0 (GPL-3.0)
@@ -18,6 +18,16 @@ The program provides information such as:
 * Ticket availability
 
 This allows users to quickly audit the Wii's installed software and verify ticket presence for each title.
+
+---
+
+## Requirements
+
+This program requires the following Python packages:
+- pycryptodome (`Crypto` module)
+
+Install with:
+    pip install pycryptodome
 
 ---
 
