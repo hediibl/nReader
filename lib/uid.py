@@ -26,7 +26,7 @@ DEV_NAMES = {
 }
 
 SYS_SPECIAL_NAMES = {
-    "00000000": "ES_Identify Superuser",
+    "00000000": "IOS Superuser",
     "00000001": "boot1 glitch",
     "00000002": "System Menu",
     "00000100": "BC",
@@ -125,5 +125,6 @@ def readUidSys(uidSysPath: str, gidDbPath: str) -> dict:
                 "type": titleType,
                 "name": titleName,
             }
+
 
     return uidEntries
