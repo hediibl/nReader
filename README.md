@@ -30,8 +30,8 @@ This program requires the following Python packages:
 - wcwidth
 
 Install with:
-    pip install pycryptodome
-    pip install wcwidth
+- `pip install pycryptodome`
+- `pip install wcwidth`
 
 ---
 
@@ -39,15 +39,15 @@ Install with:
 
 1. Clone this repository:
 
-git clone <repository-url>
+`git clone <repository-url>`
 
 2. Run the program:
 
-python nreader.py
+`python nreader.py`
 
 3. Enter the path to your NAND binary and the keys binary when prompted.
 
-4. The program will extract the NAND in a temporary folder, read /sys/uid.sys, and print a formatted report in the terminal.
+4. The program will extract the NAND in a temporary folder, read /sys/uid.sys, print a formatted report in the terminal and offer you to save it either offline or online.
 
 ---
 
@@ -62,4 +62,5 @@ Some code is derived from Wii NAND Extractor by Ben Wilson (2009) and is also co
 ## Credits
 
 - Original code for Wii NAND handling by Ben Wilson (Wii NAND Extractor, 2009), many thanks!
+
 - Thanks to Hallowizer for hallowtools, which inspired this project, and to RedBees for the idea of making it a public project.
