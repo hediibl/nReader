@@ -34,7 +34,9 @@ def getSerialNumber(settingsPath: str) -> str:
     parameters = decrypted.decode("ascii", errors="ignore").split("\r\n")
 
     if len(parameters) < 6:
-        raise ValueError("Settings file corrupted or invalid format")
+        parameters = decrypted.decode("ascii", errors="ignore").split("\n")
+        if len(parameters) < 6:
+            raise ValueError("Settings file corrupted or invalid format")
 
     try:
         part1 = parameters[4].split("=")[1]
