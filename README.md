@@ -1,13 +1,15 @@
-# nReader v1.1
+# nReader v1.2
 
 Author: hediibl
+
 License: GNU General Public License v3.0 (GPL-3.0)
 
 ---
 
 ## Description
 
-nReader is a Python tool for analyzing a Wii NAND's history. It generates a detailed report by comparing the /sys/uid.sys file with the currently installed titles and tickets on the console.
+**nReader** is a Python tool for analyzing a Wii NAND's history.  
+It generates a detailed report by comparing the `/sys/uid.sys` file with the currently installed titles and tickets on the console, and allows users to store the report either **online (publicly)** or **offline**.
 
 The program provides information such as:
 
@@ -24,10 +26,12 @@ This allows users to quickly audit the Wii's installed software and verify ticke
 ## Requirements
 
 This program requires the following Python packages:
-- pycryptodome (`Crypto` module)
+- pycryptodome
+- wcwidth
 
 Install with:
     pip install pycryptodome
+    pip install wcwidth
 
 ---
 
