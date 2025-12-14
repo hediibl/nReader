@@ -28,10 +28,12 @@ This allows users to quickly audit the Wii's installed software and verify ticke
 This program requires the following Python packages:
 - pycryptodome
 - wcwidth
+- requests
 
 Install with:
 - `pip install pycryptodome`
 - `pip install wcwidth`
+- `pip install requests`
 
 ---
 
@@ -64,5 +66,6 @@ Some code is derived from Wii NAND Extractor by Ben Wilson (2009) and is also co
 - Original code for Wii NAND handling by Ben Wilson (Wii NAND Extractor, 2009), many thanks!
 
 - Thanks to Hallowizer for hallowtools, which inspired this project, and to RedBees for the idea of making it a public project.
+
 
 
