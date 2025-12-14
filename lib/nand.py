@@ -1,30 +1,27 @@
-# nReader v1.2
+# nReader 2.0
 # Copyright (C) 2009 Ben Wilson
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
-import os
-import struct
+import os, struct
 from Crypto.Cipher import AES
 
-# -------------------------
-# Helper functions
-# -------------------------
-
 def beU16(b: bytes) -> int:
-    """Convert 2-byte big-endian bytes to integer."""
+    """
+    Convert 2-byte big-endian bytes to integer.
+    """
     return struct.unpack(">H", b)[0]
 
 def beU32(b: bytes) -> int:
-    """Convert 4-byte big-endian bytes to integer."""
+    """
+    Convert 4-byte big-endian bytes to integer.
+    """
     return struct.unpack(">I", b)[0]
 
-# -------------------------
-# FST Entry
-# -------------------------
-
 class FstEntry:
-    """Represents a single entry in the FST (File System Table)."""
+    """
+    Represents a single entry in the FST.
+    """
     def __init__(self):
         self.filename = ""
         self.mode = 0
@@ -36,11 +33,10 @@ class FstEntry:
         self.gid = 0
         self.x3 = 0
 
-# -------------------------
-# Wii NAND handling
-# -------------------------
-
 class WiiNand:
+    """
+    Handles reading and extracting Wii NAND content.
+    """
     NOECC = 0
     ECC = 1
     OLDBOOTMII = 2
@@ -51,70 +47,65 @@ class WiiNand:
         """
         self.nandPath = nandPath
         self.keysPath = keysPath
-        self.size = os.path.getsize(nandPath)
-        self.type = self._guessType()         # Determine NAND type by size
-        self.key = None
-        self._loadKey()                       # Load AES key
-        self.iv = bytes([0] * 16)
+        self.nandSize = os.path.getsize(nandPath)
+        self.nandType = self._guessType()
+        self.aesKey = None
+        self._loadKey()
+        self.aesIv = bytes([0]*16)
         self.nandFile = open(nandPath, "rb")
-
-        # Find superblock and calculate FAT/FST locations
-        self.locSuper = self._findSuperblock()
+        self.locSuperblock = self._findSuperblock()
         nFatLen = [0x010000, 0x010800, 0x010800]
-        self.locFat = self.locSuper
-        self.locFst = self.locFat + 0x0C + nFatLen[self.type]
+        self.locFat = self.locSuperblock
+        self.locFst = self.locFat + 0x0C + nFatLen[self.nandType]
 
     def close(self):
-        """Close the NAND file safely."""
+        """
+        Close the NAND file safely.
+        """
         try:
             self.nandFile.close()
         except Exception:
             pass
 
-    # -------------------------
-    # Internal helpers
-    # -------------------------
-
-    def _guessType(self):
+    def _guessType(self) -> int:
         """
         Determine NAND type by exact size.
         """
-        if self.size == 536870912:   # 512 MB, no ECC
+        if self.nandSize == 536870912:
             return self.NOECC
-        if self.size == 553648128:   # 528 MB, standard ECC
+        if self.nandSize == 553648128:
             return self.ECC
-        if self.size == 553649152:   # 528 MB, OldBootMii
+        if self.nandSize == 553649152:
             return self.OLDBOOTMII
-        raise RuntimeError(f"Unknown NAND size: {self.size}")
+        raise RuntimeError(f"Unknown NAND size: {self.nandSize}")
 
     def _loadKey(self):
         """
-        Load AES key from keys.bin or from NAND itself (OldBootMii).
+        Load AES key from keys.bin or NAND (OldBootMii).
         """
-        if self.type in (self.NOECC, self.ECC):
+        if self.nandType in (self.NOECC, self.ECC):
             with open(self.keysPath, "rb") as f:
                 f.seek(0x158)
-                self.key = f.read(16)
-                if len(self.key) != 16:
+                self.aesKey = f.read(16)
+                if len(self.aesKey) != 16:
                     raise RuntimeError("keys.bin too short or corrupted")
-        elif self.type == self.OLDBOOTMII:
+        elif self.nandType == self.OLDBOOTMII:
             with open(self.nandPath, "rb") as f:
                 f.seek(0x21000158)
-                self.key = f.read(16)
-                if len(self.key) != 16:
+                self.aesKey = f.read(16)
+                if len(self.aesKey) != 16:
                     raise RuntimeError("Failed reading key from NAND (OldBootMii)")
         else:
             raise RuntimeError("Unknown NAND type for key")
 
-    def _findSuperblock(self):
+    def _findSuperblock(self) -> int:
         """
         Locate the superblock in the NAND by scanning.
         """
-        if self.type == self.NOECC:
+        if self.nandType == self.NOECC:
             start, end, step = 0x1FC00000, 0x20000000, 0x40000
         else:
             start, end, step = 0x20BE0000, 0x21000000, 0x42000
-
         self.nandFile.seek(start + 4)
         last, loc = 0, start
         while loc < end:
@@ -130,41 +121,41 @@ class WiiNand:
             loc += step
         raise RuntimeError("No superblock found")
 
-    def _getCluster(self, clusterEntry: int) -> bytes:
+    def _getCluster(self, clusterIndex: int) -> bytes:
         """
         Read a cluster from NAND and decrypt it with AES.
         """
-        clusterLen, pageLen = (0x4000, 0x800) if self.type == self.NOECC else (0x4200, 0x840)
-        self.nandFile.seek(clusterEntry * clusterLen)
-        cluster = bytearray(0x4000)
+        clusterLen, pageLen = (0x4000, 0x800) if self.nandType == self.NOECC else (0x4200, 0x840)
+        self.nandFile.seek(clusterIndex * clusterLen)
+        clusterData = bytearray(0x4000)
         for i in range(8):
-            page = self.nandFile.read(pageLen)
-            if len(page) < pageLen:
+            pageData = self.nandFile.read(pageLen)
+            if len(pageData) < pageLen:
                 raise RuntimeError("Unexpected EOF while reading cluster page")
-            cluster[i * 0x800:(i + 1) * 0x800] = page[:0x800]
-        cipher = AES.new(self.key, AES.MODE_CBC, iv=self.iv)
-        return cipher.decrypt(bytes(cluster))
+            clusterData[i * 0x800:(i+1) * 0x800] = pageData[:0x800]
+        cipher = AES.new(self.aesKey, AES.MODE_CBC, iv=self.aesIv)
+        return cipher.decrypt(bytes(clusterData))
 
-    def _getFat(self, fatEntry: int) -> int:
+    def _getFat(self, fatIndex: int) -> int:
         """
         Return the next FAT cluster for a given FAT entry.
         """
-        fatEntry += 6
-        nFat = 0 if self.type == self.NOECC else 0x20
-        loc = self.locFat + (fatEntry // 0x400 * nFat + fatEntry) * 2
+        fatIndex += 6
+        nFatOffset = 0 if self.nandType == self.NOECC else 0x20
+        loc = self.locFat + (fatIndex // 0x400 * nFatOffset + fatIndex) * 2
         self.nandFile.seek(loc)
         raw = self.nandFile.read(2)
         if len(raw) < 2:
             raise RuntimeError("Unexpected EOF reading FAT")
         return beU16(raw)
 
-    def _getFst(self, entry: int) -> FstEntry:
+    def _getFst(self, entryIndex: int) -> FstEntry:
         """
         Read a single FST entry.
         """
         fst = FstEntry()
-        nFst = 0 if self.type == self.NOECC else 2
-        locEntry = (entry // 0x40 * nFst + entry) * 0x20
+        nFstOffset = 0 if self.nandType == self.NOECC else 2
+        locEntry = (entryIndex // 0x40 * nFstOffset + entryIndex) * 0x20
         self.nandFile.seek(self.locFst + locEntry)
         data = self.nandFile.read(0x20)
         if len(data) < 0x20:
@@ -180,72 +171,68 @@ class WiiNand:
         fst.x3 = beU32(data[28:32])
         return fst
 
-    # -------------------------
-    # Extraction
-    # -------------------------
-
-    def extractFst(self, entry: int, parent: str, outDir: str, single: bool):
+    def extractFst(self, entryIndex: int, parentDir: str, outDir: str, single: bool):
         """
         Extract a file or directory recursively from the FST.
         """
-        fst = self._getFst(entry)
-
-        if fst.sib != 0xFFFF and not single:
-            self.extractFst(fst.sib, parent, outDir, False)
-
-        if fst.mode == 0:
-            self._extractDir(fst, parent, outDir)
-        elif fst.mode == 1:
-            self._extractFile(fst, parent, outDir)
+        fstEntry = self._getFst(entryIndex)
+        if fstEntry.sib != 0xFFFF and not single:
+            self.extractFst(fstEntry.sib, parentDir, outDir, False)
+        if fstEntry.mode == 0:
+            self._extractDir(fstEntry, parentDir, outDir)
+        elif fstEntry.mode == 1:
+            self._extractFile(fstEntry, parentDir, outDir)
         else:
-            raise RuntimeError(f"Unsupported FST mode {fst.mode}")
+            raise RuntimeError(f"Unsupported FST mode {fstEntry.mode}")
 
-    def _extractDir(self, fst: FstEntry, parent: str, outDir: str):
-        """Extract a directory and its sub-entries."""
-        filename = fst.filename
-        if parent not in ("", "/"):
-            filename = os.path.join(parent, filename)
-        targetDir = os.path.join(outDir, filename) if filename != "/" else outDir
-        firstComponent = filename.strip("/").split(os.sep)[0] if filename != "/" else ""
-        if firstComponent not in ("title", "ticket", "sys") and filename != "/":
+    def _extractDir(self, fstEntry: FstEntry, parentDir: str, outDir: str):
+        """
+        Extract a directory and its sub-entries.
+        """
+        dirPath = fstEntry.filename
+        if parentDir not in ("", "/"):
+            dirPath = os.path.join(parentDir, dirPath)
+        targetDir = os.path.join(outDir, dirPath) if dirPath != "/" else outDir
+        firstComponent = dirPath.strip("/").split(os.sep)[0] if dirPath != "/" else ""
+        if firstComponent not in ("title", "ticket", "sys") and dirPath != "/":
             return
-        if filename != "/":
+        if dirPath != "/":
             os.makedirs(targetDir, exist_ok=True)
-        if fst.sub != 0xFFFF:
-            self.extractFst(fst.sub, filename if filename != "/" else "", outDir, False)
+        if fstEntry.sub != 0xFFFF:
+            self.extractFst(fstEntry.sub, dirPath if dirPath != "/" else "", outDir, False)
 
-    def _extractFile(self, fst: FstEntry, parent: str, outDir: str):
-        """Extract a file from NAND."""
-        relPath = fst.filename.replace(":", "-")
-        if parent not in ("", "/"):
-            relPath = os.path.join(parent, relPath)
+    def _extractFile(self, fstEntry: FstEntry, parentDir: str, outDir: str):
+        """
+        Extract /title, /ticket and /sys/uid.sys from NAND.
+        """
+        relPath = fstEntry.filename.replace(":", "-")
+        if parentDir not in ("", "/"):
+            relPath = os.path.join(parentDir, relPath)
         if not (relPath.startswith("title") or relPath.startswith("ticket") or relPath == os.path.join("sys", "uid.sys")):
             return
         filePath = os.path.join(outDir, relPath)
         os.makedirs(os.path.dirname(filePath), exist_ok=True)
-        fat = fst.sub
-        if fst.size == 0:
+        fatIndex = fstEntry.sub
+        if fstEntry.size == 0:
             open(filePath, "wb").close()
             return
-        clusterSpan = (fst.size // 0x4000) + 1
-        data = bytearray(clusterSpan * 0x4000)
+        clusterSpan = (fstEntry.size // 0x4000) + 1
+        dataBuffer = bytearray(clusterSpan * 0x4000)
         i = 0
-        while fat < 0xFFF0:
-            clusterData = self._getCluster(fat)
+        while fatIndex < 0xFFF0:
+            clusterData = self._getCluster(fatIndex)
             start = i * 0x4000
             end = start + 0x4000
-            data[start:end] = clusterData[:0x4000]
-            fat = self._getFat(fat)
+            dataBuffer[start:end] = clusterData[:0x4000]
+            fatIndex = self._getFat(fatIndex)
             i += 1
-        with open(filePath, "wb") as fw:
-            fw.write(data[:fst.size])
+        with open(filePath, "wb") as outFile:
+            outFile.write(dataBuffer[:fstEntry.size])
 
-# -------------------------
-# Public API
-# -------------------------
-
-def extractNandData(nandPath: str, keysPath: str, outDir="temp"):
-    """Extract the NAND to the given output directory."""
+def extractNandData(nandPath: str, keysPath: str, outDir: str):
+    """
+    Extract the NAND to the given output directory.
+    """
     nand = WiiNand(nandPath, keysPath)
     try:
         nand.extractFst(0, "", outDir, True)
