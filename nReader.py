@@ -51,7 +51,7 @@ def main() -> None:
         settingsPath = os.path.join(tempDir, "title", "00000001", "00000002", "data", "setting.txt")
         serialNumber = getSerialNumber(settingsPath)
         success = exportJson(uidEntries, serialNumber, userName, uploadUrl)
-        print("Report successfully uploaded!" if success else "Upload failed, check connection or server.")
+        print("Report successfully uploaded!" if success else "Upload failed, check connection, server or data.")
     
     shutil.rmtree(tempDir, ignore_errors=True)
     input("\nPress Enter to exit.")
