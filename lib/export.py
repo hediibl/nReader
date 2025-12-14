@@ -98,7 +98,7 @@ def getSerialNumber(settingsPath: str) -> str:
         raise ValueError("Serial number fields missing in settings")
     return f"{part1}{part2}"
 
-def formatDocumentOutput(templatePath: str, settingsPath: str, uidEntries: dict) -> tuple[str, str]:
+def formatDocumentOutput(templatePath: str, settingsPath: str, uidEntries: dict):
     """
     Return HTML content string generated from template and UID entries.
     """
@@ -125,3 +125,4 @@ def formatDocumentOutput(templatePath: str, settingsPath: str, uidEntries: dict)
     htmlContent = htmlContent.replace("TBD_DATE", datetime.now().strftime("%B %d, %Y %H:%M:%S"))
     htmlContent = htmlContent.replace("TBD_ROWS", "\n".join(rows))
     return serialNumber, htmlContent
+
