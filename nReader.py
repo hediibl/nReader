@@ -56,8 +56,8 @@ def processNand(nandPath, keysPath, forcedSerial, saveFlag, shareFlag, username)
             if not proceed:
                 print("Upload cancelled by user.")
                 return
-        existing_positions = [e.get("position",0) for e in check_data.get("entries", [])]
-        response = exportJson(uidEntries, serialNumber, forcedSerial, username, php_url, existing_positions)
+        existing_entries = check_data.get("entries", [])
+        response = exportJson(uidEntries, serialNumber, forcedSerial, username, php_url, existing_entries)
         print(f"Report successfully uploaded!" if response.get("success") else f"Upload failed: {response.get('error')}")
     shutil.rmtree(tempDir, ignore_errors=True)
 
