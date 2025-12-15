@@ -42,7 +42,7 @@ def processNand(nandPath, keysPath, forcedSerial, saveFlag, shareFlag, username)
         print(f"Report saved as {outputFile}.")
     if shareFlag:
         print("\nChecking serial on server...")
-        php_url = "https://nreader.eu/pages/test.php"
+        php_url = "https://nreader.eu/pages/upload.php"
         check_data = checkSerialOnServer(forcedSerial, php_url)
         if check_data.get("exists", False):
             existing_user = check_data.get("username", "")
