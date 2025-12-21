@@ -1,4 +1,4 @@
-# nReader 2.2
+# nReader 2.3
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -9,11 +9,6 @@ from wcwidth import wcswidth
 ansiEscape = re.compile(r'\x1b\[[0-9;]*m')
 
 def isAnsiCompatible():
-    """
-    Check if the current terminal supports ANSI escape codes.
-
-    :return: bool, True if ANSI colors can be displayed, False otherwise
-    """
     try:
         return os.name != "nt" or "ANSICON" in os.environ or "WT_SESSION" in os.environ
     except Exception:
@@ -55,7 +50,6 @@ def formatShellOutput(uidEntries, useColor=None):
     Return a formatted table of UID entries for terminal display.
 
     :param uidEntries: dict, UID entries with resolved info
-    :param serialNumber: str, serial of the console/NAND
     :param useColor: bool or None, whether to apply ANSI colors (auto-detected if None)
     :return: str, formatted table string
     """
@@ -88,16 +82,19 @@ def insertColor(status):
     color = statusMap.get(status,"green")
     return f"<span class='{color}'>{html.escape(status)}</span>"
 
-def formatDocumentOutput(templatePath, uidEntries, serialNumber, username, currentDate=None):
+def formatDocumentOutput(templatePath, uidEntries, serialNumber, username, description=None, forcedSerial=None, currentDate=None):
     """
     Generate HTML content from template and UID entries.
+    Handles warnings and uploader description.
 
     :param templatePath: str, path to HTML template
     :param uidEntries: dict, UID entries with resolved info
-    :param serialNumber: str, serial of the console/NAND
+    :param serialNumber: str, serial detected in NAND
     :param username: str, user who generated the document
+    :param description: str or None, optional uploader description
+    :param forcedSerial: str or None, user-specified serial (for warning)
     :param currentDate: datetime, optional date to use instead of now
-    :return: tuple(str, str), serialNumber and generated HTML content
+    :return: str, generated HTML content
     """
     if not os.path.isfile(templatePath):
         raise FileNotFoundError(f"HTML template not found: {templatePath}")
@@ -113,11 +110,22 @@ def formatDocumentOutput(templatePath, uidEntries, serialNumber, username, curre
             f"<td>{insertColor(entry.get('ticket','N/A'))}</td>"
             "</tr>"
         )
-    with open(templatePath,"r",encoding="utf-8") as file:
+    with open(templatePath, "r", encoding="utf-8") as file:
         htmlTemplate = file.read()
-    htmlContent = htmlTemplate.replace("TBD_SERIAL", html.escape(serialNumber))
+    displaySerial = forcedSerial or serialNumber
+    htmlContent = htmlTemplate.replace("TBD_SERIAL", html.escape(displaySerial))
     htmlContent = htmlContent.replace("TBD_USER", html.escape(username))
     utcNow = currentDate or datetime.now(timezone.utc)
     htmlContent = htmlContent.replace("TBD_DATE", utcNow.strftime("%B %d, %Y %H:%M:%S"))
     htmlContent = htmlContent.replace("TBD_ROWS", "\n".join(rows))
+    if forcedSerial and forcedSerial != serialNumber:
+        warningHtml = f"<p class='orange'>Warning: User-specified serial ({html.escape(forcedSerial)}) does not match the NAND serial ({html.escape(serialNumber)}).</p>"
+    else:
+        warningHtml = ""
+    htmlContent = htmlContent.replace("TBD_WARNING_SERIAL", warningHtml)
+    if description:
+        descriptionHtml = f"<p class='yellow description'><b>Notes from the uploader:</b> {html.escape(description)}</p>"
+    else:
+        descriptionHtml = ""
+    htmlContent = htmlContent.replace("TBD_DESCRIPTION", descriptionHtml)
     return htmlContent

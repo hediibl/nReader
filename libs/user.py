@@ -1,4 +1,4 @@
-# nReader 2.2
+# nReader 2.3
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -10,13 +10,14 @@ def getConfigPath():
 
     :return: str, full path to the user config file
     """
-    if platform.system() == "Windows":
-        base = os.getenv("APPDATA", os.path.expanduser("~"))
-    elif platform.system() == "Darwin":
-        base = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
+    systemName = platform.system()
+    if systemName == "Windows":
+        baseDir = os.getenv("APPDATA", os.path.expanduser("~"))
+    elif systemName == "Darwin":
+        baseDir = os.path.join(os.path.expanduser("~"), "Library", "Application Support")
     else:
-        base = os.path.expanduser("~/.config")
-    configDir = os.path.join(base, "nReader")
+        baseDir = os.path.expanduser("~/.config")
+    configDir = os.path.join(baseDir, "nReader")
     os.makedirs(configDir, exist_ok=True)
     return os.path.join(configDir, "user.ini")
 
@@ -29,28 +30,27 @@ def chooseUsername(currentUsername=None, forcePrompt=False):
     :return: str, chosen username (1-32 chars, A-Za-z0-9_-)
     """
     configPath = getConfigPath()
+    usernamePattern = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
     if forcePrompt:
-        pattern = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
         while True:
-            prompt = f"\nYou have requested to change your username.\nPlease enter your username to continue: "
+            prompt = "\nYou have requested to change your username.\nPlease enter your username to continue: "
             name = input(prompt).strip()
             if not name and currentUsername:
                 name = currentUsername
-            if pattern.match(name):
+            if usernamePattern.match(name):
                 return name
             print("Invalid username. Use 1-32 chars, letters, numbers, underscore or dash.")
-    if currentUsername is not None:
+    if currentUsername:
         return currentUsername
     if os.path.isfile(configPath):
         config = configparser.ConfigParser()
         config.read(configPath)
         if "USER" in config and "username" in config["USER"]:
             return config["USER"]["username"]
-    pattern = re.compile(r'^[A-Za-z0-9_-]{1,32}$')
     while True:
         prompt = "\nWelcome! It looks like you're using this software for the first time.\nPlease enter your username to continue: "
         name = input(prompt).strip()
-        if pattern.match(name):
+        if usernamePattern.match(name):
             return name
         print("Invalid username. Use 1-32 chars, letters, numbers, underscore or dash.")
 
@@ -63,22 +63,22 @@ def rotateLeft32(value):
     """
     return ((value << 1) & 0xFFFFFFFF) | (value >> 31)
 
-def xorEncrypt(buffer, isEnc):
+def xorEncrypt(dataBuffer, isEnc):
     """
     Encrypt or decrypt buffer using a simple XOR-based scheme.
     Only first 256 bytes are affected when decrypting.
 
-    :param buffer: bytes, input data
+    :param dataBuffer: bytes, input data
     :param isEnc: bool, True for encrypt, False for decrypt
     :return: bytes, encrypted or decrypted data
     """
     key = 0x73B5DBFA
-    dataBuffer = bytearray(buffer)
-    length = len(dataBuffer) if isEnc else min(256, len(dataBuffer))
+    bufferBytes = bytearray(dataBuffer)
+    length = len(bufferBytes) if isEnc else min(256, len(bufferBytes))
     for i in range(length):
-        dataBuffer[i] ^= key & 0xFF
+        bufferBytes[i] ^= key & 0xFF
         key = rotateLeft32(key)
-    return bytes(dataBuffer)
+    return bytes(bufferBytes)
 
 def getSerialNumber(settingsPath):
     """
@@ -89,8 +89,8 @@ def getSerialNumber(settingsPath):
     """
     if not os.path.isfile(settingsPath):
         raise FileNotFoundError(f"Settings file not found: {settingsPath}")
-    with open(settingsPath, "rb") as file:
-        encryptedData = file.read()
+    with open(settingsPath, "rb") as f:
+        encryptedData = f.read()
     decryptedData = xorEncrypt(encryptedData, isEnc=True)
     decodedData = decryptedData.decode("ascii", errors="ignore")
     parameters = [p for p in re.split(r'[\r\n]+', decodedData) if p]
@@ -111,11 +111,11 @@ def validateForcedSerial(serial):
     :return: str, uppercase serial if valid
     :raises ValueError: if serial format invalid
     """
-    serial = serial.upper()
+    serialUpper = serial.upper()
     pattern = re.compile(r'^[A-Z0-9]{10,14}$')
-    if not pattern.match(serial):
+    if not pattern.match(serialUpper):
         raise ValueError("Forced serial is invalid. Must be 10-14 chars, uppercase letters and digits only.")
-    return serial
+    return serialUpper
 
 def writeUserConfig(username):
     """
@@ -123,8 +123,8 @@ def writeUserConfig(username):
 
     :param username: str, username to save
     """
-    path = getConfigPath()
+    configPath = getConfigPath()
     config = configparser.ConfigParser()
     config["USER"] = {"username": username}
-    with open(path, "w", encoding="utf-8") as f:
+    with open(configPath, "w", encoding="utf-8") as f:
         config.write(f)

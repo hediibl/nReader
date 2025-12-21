@@ -1,4 +1,4 @@
-# nReader 2.2
+# nReader 2.3
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -47,7 +47,7 @@ def resolveIosName(minorId):
     :return: str, resolved IOS name or empty string
     """
     try:
-        return f"IOS{int(minorId,16)}"
+        return f"IOS{int(minorId, 16)}"
     except ValueError:
         return ""
 
@@ -67,7 +67,7 @@ def resolveTitleName(db, titleId, gid):
         return resolveIosName(minor)
     if gid.startswith("U"):
         return db.get(gid) or db.get(f"R{gid[1:]}", "")
-    return db.get(gid,"")
+    return db.get(gid, "")
 
 def checkForTitle(rootDir, titleId):
     """
@@ -79,17 +79,17 @@ def checkForTitle(rootDir, titleId):
     """
     try:
         major, minor = titleId.split("-")
-        path = os.path.join(rootDir,"title",major,minor,"content","title.tmd")
+        path = os.path.join(rootDir, "title", major, minor, "content", "title.tmd")
         if major == "00010000":
             return "Yes" if os.path.isfile(path) else "No"
         if not os.path.isfile(path):
             return "No"
-        with open(path,"rb") as tmdFile:
+        with open(path, "rb") as tmdFile:
             tmdFile.seek(0x01DC)
             versionBytes = tmdFile.read(2)
-            if len(versionBytes)<2:
+            if len(versionBytes) < 2:
                 return "No"
-            return f"v{(versionBytes[0]<<8)|versionBytes[1]}"
+            return f"v{(versionBytes[0] << 8) | versionBytes[1]}"
     except Exception:
         return "No"
 
@@ -105,7 +105,7 @@ def checkForTicket(rootDir, titleId):
         major, minor = titleId.split("-")
         if major == "00010000":
             return "N/A"
-        ticketPath = os.path.join(rootDir,"ticket",major,f"{minor}.tik")
+        ticketPath = os.path.join(rootDir, "ticket", major, f"{minor}.tik")
         return "Yes" if os.path.isfile(ticketPath) else "No"
     except Exception:
         return "No"
@@ -119,25 +119,27 @@ def readUidSys(rootDir, dbPath):
     :return: dict, UID entries with resolved names and status
     """
     uidEntries = {}
-    uidPath = os.path.join(rootDir,"sys","uid.sys")
+    uidPath = os.path.join(rootDir, "sys", "uid.sys")
     if not os.path.isfile(uidPath):
         return uidEntries
     db = loadNamesDatabase(dbPath)
-    with open(uidPath,"rb") as uidFile:
+    with open(uidPath, "rb") as uidFile:
         while True:
             block = uidFile.read(12)
             if not block:
                 break
-            if block == b"\x00"*12:
+            if block == b"\x00" * 12:
                 continue
             majorHex = "".join(f"{b:02x}" for b in block[0:4])
             minorHex = "".join(f"{b:02x}" for b in block[4:8])
             titleId = f"{majorHex}-{minorHex}"
-            gid = "".join(chr(b) if 32<=b<=126 else "." for b in block[4:8])
-            titleType = typesMap.get(majorHex,"Unknown")
-            titleName = resolveTitleName(db,titleId,gid)
-            titleStatus = checkForTitle(rootDir,titleId)
-            ticketStatus = checkForTicket(rootDir,titleId)
+            gid = "".join(chr(b) if 32 <= b <= 126 else "." for b in block[4:8])
+            titleType = typesMap.get(majorHex)
+            if not titleType:
+                raise RuntimeError("Unknown title type provided, NAND decryption likely failed. Try running the program again specifying the --keysPath argument.")
+            titleName = resolveTitleName(db, titleId, gid)
+            titleStatus = checkForTitle(rootDir, titleId)
+            ticketStatus = checkForTicket(rootDir, titleId)
             uidEntries[titleId] = {
                 "gid": gid,
                 "type": titleType,

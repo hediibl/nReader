@@ -1,4 +1,4 @@
-# nReader 2.2
+# nReader 2.3
 # Copyright (C) 2009 Ben Wilson
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
@@ -26,7 +26,7 @@ def beU32(data):
 
 class FstEntry:
     def __init__(self):
-        self.filename = ""
+        self.fileName = ""
         self.mode = 0
         self.attr = 0
         self.sub = 0xFFFF
@@ -37,9 +37,9 @@ class FstEntry:
         self.x3 = 0
 
 class WiiNand:
-    NOECC = 0
-    ECC = 1
-    OLDBOOTMII = 2
+    noEcc = 0
+    ecc = 1
+    oldBootMii = 2
 
     def __init__(self, nandPath, keysPath):
         """
@@ -52,8 +52,8 @@ class WiiNand:
         self.keysPath = keysPath
         fileSize = os.path.getsize(nandPath)
         if keysPath is None:
-            self.nandSize = fileSize - 1024
-            self.keysOffset = self.nandSize
+            self.nandSize = fileSize
+            self.keysOffset = self.nandSize - 1024
         else:
             self.nandSize = fileSize
             self.keysOffset = None
@@ -84,11 +84,11 @@ class WiiNand:
         :return: int, NAND type constant
         """
         if self.nandSize == 536_870_912:
-            return self.NOECC
+            return self.noEcc
         if self.nandSize == 553_648_128:
-            return self.ECC
+            return self.ecc
         if self.nandSize == 553_649_152:
-            return self.OLDBOOTMII
+            return self.oldBootMii
         raise RuntimeError(f"Unknown NAND size: {self.nandSize}")
 
     def _loadKey(self):
@@ -114,7 +114,7 @@ class WiiNand:
 
         :return: int, superblock offset
         """
-        return 0x1FC00000 if self.nandType == self.NOECC else 0x20BE0000
+        return 0x1FC00000 if self.nandType == self.noEcc else 0x20BE0000
 
     def _getCluster(self, index):
         """
@@ -123,7 +123,7 @@ class WiiNand:
         :param index: int, cluster index
         :return: bytes, decrypted cluster
         """
-        clusterLen, pageLen = (0x4000, 0x800) if self.nandType == self.NOECC else (0x4200, 0x840)
+        clusterLen, pageLen = (0x4000, 0x800) if self.nandType == self.noEcc else (0x4200, 0x840)
         offset = index * clusterLen
         if offset + clusterLen > self.nandSize:
             raise RuntimeError("Cluster out of NAND bounds")
@@ -142,7 +142,7 @@ class WiiNand:
         :return: int, next cluster index
         """
         index += 6
-        eccOffset = 0 if self.nandType == self.NOECC else 0x20
+        eccOffset = 0 if self.nandType == self.noEcc else 0x20
         loc = self.locFat + (index // 0x400 * eccOffset + index) * 2
         self.nandFile.seek(loc)
         return beU16(self.nandFile.read(2))
@@ -155,11 +155,11 @@ class WiiNand:
         :return: FstEntry, entry object
         """
         fst = FstEntry()
-        eccOffset = 0 if self.nandType == self.NOECC else 2
+        eccOffset = 0 if self.nandType == self.noEcc else 2
         loc = (index // 0x40 * eccOffset + index) * 0x20
         self.nandFile.seek(self.locFst + loc)
         data = self.nandFile.read(0x20)
-        fst.filename = data[0:12].rstrip(b"\0").decode("ascii", "ignore")
+        fst.fileName = data[0:12].rstrip(b"\0").decode("ascii", "ignore")
         fst.mode = data[12] & 1
         fst.sub = beU16(data[14:16])
         fst.sib = beU16(data[16:18])
@@ -193,7 +193,7 @@ class WiiNand:
         :param outDir: str, output directory
         :return: None
         """
-        path = entry.filename if parent in ("", "/") else os.path.join(parent, entry.filename)
+        path = entry.fileName if parent in ("", "/") else os.path.join(parent, entry.fileName)
         root = path.strip("/").split(os.sep)[0]
         if root not in ("title", "ticket", "sys") and path != "/":
             return
@@ -211,7 +211,7 @@ class WiiNand:
         :param outDir: str, output directory
         :return: None
         """
-        name = entry.filename.replace(":", "-")
+        name = entry.fileName.replace(":", "-")
         path = name if parent in ("", "/") else os.path.join(parent, name)
         if not (path.startswith("title") or path.startswith("ticket") or path == os.path.join("sys", "uid.sys")):
             return
