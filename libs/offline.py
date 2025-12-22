@@ -1,4 +1,4 @@
-# nReader 2.3
+# nReader 2.4
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 

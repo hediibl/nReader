@@ -1,4 +1,4 @@
-# nReader 2.3
+# nReader 2.4
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -40,7 +40,6 @@ def prepareJson(uidEntries, serial, serialNand, username, description=""):
         "description": description,
         "entries": []
     }
-
     position = 1
     for entryUid, entryData in uidEntries.items():
         jsonData["entries"].append({
@@ -48,12 +47,10 @@ def prepareJson(uidEntries, serial, serialNand, username, description=""):
             "id": entryUid,
             "gid": entryData.get("gid", ""),
             "type": entryData.get("type", ""),
-            "name": entryData.get("name", ""),
             "title": entryData.get("title", ""),
             "ticket": entryData.get("ticket", "")
         })
         position += 1
-
     return jsonData
 
 def exportJson(uidEntries, serial, serialNand, username, phpUrl, description=""):

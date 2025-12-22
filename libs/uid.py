@@ -1,4 +1,4 @@
-# nReader 2.3
+# nReader 2.4
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -21,7 +21,7 @@ specialIds = {
     "00000001-00000001": "boot1 glitch",
     "00000001-00000002": "System Menu",
     "00000001-00000100": "BC",
-    "00000001-00000101": "MIOS",
+    "00000001-00000101": "MIOS"
 }
 
 def loadNamesDatabase(dbPath):
@@ -60,9 +60,9 @@ def resolveTitleName(db, titleId, gid):
     :param gid: str, title's GID
     :return: str, resolved title name
     """
-    major, minor = titleId[0:8], titleId[9:17]
     if titleId in specialIds:
         return specialIds[titleId]
+    major, minor = titleId[0:8], titleId[9:17]
     if major == "00000001":
         return resolveIosName(minor)
     if gid.startswith("U"):
