@@ -1,4 +1,5 @@
-# nReader 2.3
+#!/usr/bin/env python3
+# nReader 2.4
 # Copyright (C) 2025 hediibl
 # Licensed under the GNU GPL v3
 
@@ -79,7 +80,7 @@ def processNand(nandPath, useKeys, saveFlag, shareFlag, username, forcedSerial=N
     shutil.rmtree(tempDir, ignore_errors=True)
 
 def main():
-    print("nReader 2.3\nCopyright (C) 2025 hediibl\nLicensed under the GNU GPL v3")
+    print("nReader 2.4\nCopyright (C) 2025 hediibl\nLicensed under the GNU GPL v3")
     parser = argparse.ArgumentParser(usage="python nReader.py nandPath [--useKeys keysPath] [--localSave] [--shareOnline] [--forceSerial serialNumber] [--addDescription 'descriptionText']")
     parser.add_argument("nandPath", nargs="?", help="Path to NAND binary")
     parser.add_argument("--useKeys", default=None, help="Path to keys binary", metavar="keysPath")

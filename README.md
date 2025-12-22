@@ -1,4 +1,4 @@
-# nReader 2.3
+# nReader 2.4
 
 Author: hediibl
 
