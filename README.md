@@ -32,7 +32,14 @@ This makes it easy to audit a Wii NAND, detect inconsistencies, and preserve his
 
 nReader is available in two independent versions:
 
-### 1. Desktop version
+### 1. Console version
+
+* **Language:** C
+* **Purpose:** Run directly on a Wii via exploits
+* **License:** MIT License
+* **Functionality:** Generates the same NAND history report, including all titles ever installed—even those no longer present—and can save it locally or share it online.
+
+### 2. Desktop version
 
 * **Language:** Python 3
 * **Files:** `nReader.py`, optional `.exe` for Windows
@@ -40,16 +47,18 @@ nReader is available in two independent versions:
 
 The executable version does **not** require Python or any dependencies to be installed.
 
-### 2. Console version
-
-* **Language:** C
-* **Purpose:** Run directly on a Wii via exploits
-* **License:** MIT License
-* **Functionality:** Generates the same NAND history report, including all titles ever installed—even those no longer present—and can save it locally or share it online.
-
 ---
 
 ## Requirements
+
+### Wii version
+
+Running the Wii version requires:
+
+* A Nintendo Wii, Wii Family Edition or Wii Mini;
+* Some exploit/the Homebrew Channel to run the `.elf` / `.dol` executable;
+* An SD card for saving local reports (optional);
+* An Internet connection to your Wii for uploading reports (optional).
 
 ### Python version
 
@@ -65,18 +74,13 @@ Install them with:
 pip install pycryptodome wcwidth requests
 ```
 
-### Wii version
-
-Running the Wii version requires:
-
-* A Nintendo Wii;
-* Some exploit/the Homebrew Channel to run the `.elf/.dol` executable;
-* An SD card for saving local reports (optional);
-* An Internet connection to your Wii for uploading reports (optional).
-
 ---
 
 ## Usage
+
+### Wii version
+
+Launch the `.elf` / `.dol` executable through any exploit/the Homebrew Channel and follow the on-screen instructions.
 
 ### Python version
 
@@ -90,13 +94,19 @@ python nReader.py nandPath [--useKeys keysPath] [--localSave] [--shareOnline] [-
 nReader.exe nandPath [--useKeys keysPath] [--localSave] [--shareOnline] [--forceSerial serialNumber] [--addDescription "description"]
 ```
 
-### Wii version
-
-Launch the `.elf/.dol` executable through any exploit/the Homebrew Channel and follow the on-screen instructions.
-
 ---
 
 ## Building
+
+### Wii version
+
+devkitPPC and libogc are required to compile the `.elf` / `.dol` executables.
+
+To compile, open a shell in the root directory and run:
+
+```
+make
+```
 
 ### Windows version
 
@@ -118,16 +128,6 @@ To compile, open a shell in the root directory and run:
 pyinstaller nReader.spec
 ```
 
-### Wii version
-
-devkitPPC and libogc are required to compile the `.elf/.dol` executables.
-
-To compile, open a shell in the root directory and run:
-
-```
-make
-```
-
 ---
 
 ## License
@@ -147,5 +147,6 @@ make
 * Original code for Wii NAND handling by Ben Wilson (Wii NAND Extractor, 2009), many thanks!
 * Code for filesystem permissions borrowed from Aep's tikdumper, thanks a lot!
 * Thanks to Hallowizer for hallowtools, which inspired this project, and to RedBees for the idea of making it a public project.
+
 
 
