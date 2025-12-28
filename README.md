@@ -28,7 +28,7 @@ This makes it easy to audit a Wii NAND, detect inconsistencies, and preserve his
 
 ---
 
-## Distribution formats
+## Distributions
 
 nReader is available in two independent versions:
 
@@ -51,9 +51,9 @@ The executable version does **not** require Python or any dependencies to be ins
 
 ## Requirements
 
-### Desktop version
+### Python version
 
-If you're using the Python version, the following packages are required:
+The following packages are required:
 
 * `pycryptodome`
 * `wcwidth`
@@ -67,11 +67,12 @@ pip install pycryptodome wcwidth requests
 
 ### Wii version
 
+Running the Wii version requires:
+
 * A Nintendo Wii;
 * Some exploit/the Homebrew Channel to run the `.elf/.dol` executable;
-* devkitPPC and libogc (for compiling);
-* An SD card for saving local reports;
-* An Internet connection to your Wii for uploading reports.
+* An SD card for saving local reports (optional);
+* An Internet connection to your Wii for uploading reports (optional).
 
 ---
 
@@ -95,14 +96,48 @@ Launch the `.elf/.dol` executable through any exploit/the Homebrew Channel and f
 
 ---
 
+## Building
+
+### Windows version
+
+The following packages are required to compile the `.exe` executable :
+* `pyinstaller`
+* `pycryptodome`
+* `wcwidth`
+* `requests`
+
+Install them with:
+
+```
+pip install pyinstaller pycryptodome wcwidth requests
+```
+
+To compile, open a shell in the root directory and run:
+
+```
+pyinstaller nReader.spec
+```
+
+### Wii version
+
+devkitPPC and libogc are required to compile the `.elf/.dol` executables.
+
+To compile, open a shell in the root directory and run:
+
+```
+make
+```
+
+---
+
 ## License
 
-* **Desktop version:** GNU General Public License v3.0 (GPL-3.0)
-  See: [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html)
+* **Desktop version:** GNU General Public License v3.0 (GPL-3.0). 
+  See: [https://www.gnu.org/licenses/gpl-3.0.html](https://www.gnu.org/licenses/gpl-3.0.html). 
   Some code is derived from *Wii NAND Extractor* by Ben Wilson (2009) and remains covered under GPL‑3.0.
 
-* **Console version:** MIT License
-  See: [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
+* **Console version:** MIT License. 
+  See: [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT). 
   Some code is derived from *tikdumper* by Aep (2025) and remains covered under MIT License.
 
 ---
@@ -112,4 +147,5 @@ Launch the `.elf/.dol` executable through any exploit/the Homebrew Channel and f
 * Original code for Wii NAND handling by Ben Wilson (Wii NAND Extractor, 2009), many thanks!
 * Code for filesystem permissions borrowed from Aep's tikdumper, thanks a lot!
 * Thanks to Hallowizer for hallowtools, which inspired this project, and to RedBees for the idea of making it a public project.
+
 
