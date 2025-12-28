@@ -103,6 +103,7 @@ Launch the `.elf/.dol` executable through any exploit/the Homebrew Channel and f
 
 * **Console version:** MIT License
   See: [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
+  Some code is derived from *tikdumper* by Aep (2025) and remains covered under MIT License.
 
 ---
 
@@ -111,3 +112,4 @@ Launch the `.elf/.dol` executable through any exploit/the Homebrew Channel and f
 * Original code for Wii NAND handling by Ben Wilson (Wii NAND Extractor, 2009), many thanks!
 * Code for filesystem permissions borrowed from Aep's tikdumper, thanks a lot!
 * Thanks to Hallowizer for hallowtools, which inspired this project, and to RedBees for the idea of making it a public project.
+
