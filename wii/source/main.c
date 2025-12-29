@@ -9791,14 +9791,14 @@ static char* generateHtmlReport(const char *username, const char *serial) {
         "    <title>nReader</title>\n"
         "    <style>\n"
         "        html, body { height: 100%%; margin: 0; padding: 0; box-sizing: border-box; }\n"
-        "        body { color: white; background-color: #1b1b1f; font-family: Consolas, Menlo, 'Liberation Mono', 'DejaVu Sans Mono', system-ui, monospace; font-size: 12px; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow-y: auto; }\n"
+        "        body { color: #dfdfdf; background-color: #212121; font-family: Consolas, Menlo, 'Liberation Mono', 'DejaVu Sans Mono', system-ui, monospace; font-size: 12px; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; text-align: center; overflow-y: auto; }\n"
         "        section { text-align: left; width: 100%%; max-width: 1440px; }\n"
-        "        hr { border: 1px solid white; transform: scaleY(0.5); width: 100%%; max-width: 1440px; }\n"
+        "        hr { border: 1px solid #dfdfdf; transform: scaleY(0.5); width: 100%%; max-width: 1440px; }\n"
         "        h1, h2 { margin: 0; }\n"
         "        a { color: cyan; text-decoration: none; }\n"
         "        table { border-collapse: collapse; width: 100%%; }\n"
-        "        th, td { padding: 3px 10px; border: 1px solid white; word-break: break-word; }\n"
-        "        th { background-color: darkslategray; color: white; }\n"
+        "        th, td { padding: 3px 10px; border: 1px solid #dfdfdf; word-break: break-word; }\n"
+        "        th { background-color: darkslategray; color: #dfdfdf; }\n"
         "        .red { color: red; } .orange { color: orange; } .yellow { color: yellow; } .green { color: lime; } .gray { color: gray; }\n"
         "        @media (max-width: 768px) { body { padding: 10px; font-size: 11px; } th, td { padding: 2px 5px; } }\n"
         "    </style>\n"
@@ -10075,4 +10075,5 @@ int main() {
 		VIDEO_WaitVSync();
 	}
     return 0;
+
 }
