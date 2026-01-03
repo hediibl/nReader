@@ -1,17 +1,14 @@
-# nReader 2.4
-# Copyright (C) 2025 hediibl
+# nReader 2.5
+# Copyright (C) 2026 hediibl
 # Licensed under the GNU GPL v3
 
 import requests
 from datetime import datetime, timezone
 
+
 def checkSerialOnServer(serial, phpUrl):
     """
     Check if a serial already exists on the server.
-
-    :param serial: str, user-declared console serial
-    :param phpUrl: str, backend URL
-    :return: dict returned by backend
     """
     try:
         response = requests.get(f"{phpUrl}?checkSerial={serial}", timeout=10)
@@ -20,6 +17,7 @@ def checkSerialOnServer(serial, phpUrl):
         return response.json()
     except requests.RequestException:
         return {"exists": False, "errorCode": "NETWORK_ERROR"}
+
 
 def prepareJson(uidEntries, serial, serialNand, username, description=""):
     """
@@ -45,31 +43,27 @@ def prepareJson(uidEntries, serial, serialNand, username, description=""):
         jsonData["entries"].append({
             "position": position,
             "id": entryUid,
-            "gid": entryData.get("gid", ""),
-            "type": entryData.get("type", ""),
             "title": entryData.get("title", ""),
             "ticket": entryData.get("ticket", "")
         })
         position += 1
     return jsonData
 
+
 def exportJson(uidEntries, serial, serialNand, username, phpUrl, description=""):
     """
     Export UID entries and optional description to PHP backend.
-
-    :param uidEntries: dict of local UID entries
-    :param serial: str, user-declared serial
-    :param serialNand: str, serial detected from NAND
-    :param username: str, uploader username
-    :param phpUrl: str, backend URL
-    :param description: str, optional description
-    :return: dict, backend response
     """
     headers = {"Content-Type": "application/json"}
     jsonData = prepareJson(uidEntries, serial, serialNand, username, description)
 
     try:
-        response = requests.post(phpUrl, json=jsonData, headers=headers, timeout=15)
+        response = requests.post(
+            phpUrl,
+            json=jsonData,
+            headers=headers,
+            timeout=15
+        )
         if response.status_code != 200:
             return {"success": False, "errorCode": "HTTP_ERROR"}
         return response.json()

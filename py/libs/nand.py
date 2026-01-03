@@ -1,6 +1,6 @@
-# nReader 2.4
+# nReader 2.5
 # Copyright (C) 2009 Ben Wilson
-# Copyright (C) 2025 hediibl
+# Copyright (C) 2026 hediibl
 # Licensed under the GNU GPL v3
 
 import os, struct

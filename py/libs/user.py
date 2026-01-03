@@ -1,5 +1,5 @@
-# nReader 2.4
-# Copyright (C) 2025 hediibl
+# nReader 2.5
+# Copyright (C) 2026 hediibl
 # Licensed under the GNU GPL v3
 
 import os, platform, configparser, re
