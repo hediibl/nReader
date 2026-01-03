@@ -33,10 +33,11 @@ int main(void) {
 
     std::cout << "Uploading report...";
     executeHandler(netUpload, &report);
-    std::cout << "Your report is available at: https://nreader.eu/pages/nand.php?nand=" << report.serial;
+    std::cout << "Your report is available at:\nhttps://nreader.eu/pages/nand.php?nand=" << report.serial;
     videoWait(55);
     
     std::cout << "\nThanks you for contributing to Wii history preservation!\nExiting...";
     videoWait(275);
     return 0;
+
 }
