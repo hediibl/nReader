@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<app version="1">
-    <name>nReader</name>
-    <version>2.4</version>
-    <author>hediibl</author>
-    <short_description>Wii NAND Report Tool</short_description>
-    <long_description>Generates a report of your Wii NAND, listing all ever installed titles. You can save the report locally or upload it online for later access.</long_description>
-    <release_date>20251228</release_date>
-</app>
